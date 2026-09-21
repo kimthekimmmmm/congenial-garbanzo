@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>STEMS — Separera ljud</title>
+    <meta name="description" content="Dela upp en ljudfil i hörbara frekvensband direkt i webbläsaren." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#" aria-label="STEMS startsida"><span class="brand-mark">S</span><span>STEMS</span></a>
+        <div class="status"><span class="status-dot"></span>Lokalt läge</div>
+        <button class="icon-button" aria-label="Inställningar">⌘</button>
+      </header>
+
+      <section class="hero">
+        <p class="eyebrow">LJUDSEPARERING</p>
+        <h1>Hitta varje lager<br />i <em>ditt</em> ljud.</h1>
+        <p class="intro">Ladda upp en låt och isolera sång, trummor, bas och övriga instrument med Demucs på din dator.</p>
+      </section>
+
+      <section class="workspace" aria-label="Ljudarbetsyta">
+        <div id="drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="Ladda upp ljudfil">
+          <div class="drop-content" id="upload-prompt">
+            <div class="upload-icon">↑</div>
+            <h2>Släpp din ljudfil här</h2>
+            <p>eller <button id="browse-button" class="text-button">välj en fil</button> från din dator</p>
+            <span class="format-note">MP3, WAV, FLAC eller M4A · Max 500 MB</span>
+          </div>
+          <div id="file-info" class="file-info" hidden>
+            <div class="file-symbol">♫</div>
+            <div><strong id="file-name">filnamn.mp3</strong><span id="file-meta">Bearbetas...</span></div>
+            <button id="remove-file" class="remove-file" aria-label="Ta bort fil">×</button>
+          </div>
+          <input id="file-input" type="file" accept="audio/*,.flac" hidden />
+        </div>
+
+        <div class="separator-line"><span></span><p>VÄLJ VAD DU VILL SEPARERA</p><span></span></div>
+
+        <div class="stem-options" aria-label="Separationsmodell">
+          <div class="stem-option selected">
+            <span class="stem-count">4</span><span><strong>Fyra AI-stämmor</strong><small>Sång, trummor, bas och övrigt · Demucs HTDemucs</small></span><i>✓</i>
+          </div>
+        </div>
+
+        <button id="separate-button" class="primary-button" disabled><span>Separera ljud</span><b>→</b></button>
+        <p id="helper-text" class="helper-text">Välj en ljudfil för att komma igång</p>
+      </section>
+
+      <section id="results" class="results" hidden>
+        <div class="results-heading"><div><p class="eyebrow">KLART</p><h2>Dina separerade spår</h2></div><button id="download-all" class="download-all">↓ Hämta alla</button></div>
+        <p class="results-note">Spåren skapas av Demucs på din dator. Första körningen kan hämta modellfiler och ta några minuter.</p>
+        <div id="tracks" class="tracks" aria-live="polite"></div>
+      </section>
+
+      <footer><span>STEMS 01</span><span>Din fil bearbetas lokalt på din dator.</span><span>© 2026</span></footer>
+    </main>
+    <div id="toast" class="toast" role="status"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
