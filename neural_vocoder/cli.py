@@ -11,13 +11,13 @@ def load_model(path,device):
 def main():
  p=argparse.ArgumentParser(); p.add_argument('--verbose',action='store_true'); sub=p.add_subparsers(dest='command',required=True)
  a=sub.add_parser('prepare'); a.add_argument('--manifest',required=True);a.add_argument('--output',required=True);a.add_argument('--sample-rate',type=int,default=48000);a.add_argument('--hop-size',type=int,default=300);a.add_argument('--n-mels',type=int,default=100)
- a=sub.add_parser('train'); a.add_argument('--config',required=True);a.add_argument('--train-manifest',required=True);a.add_argument('--output',default='runs/latest')
+ a=sub.add_parser('train'); a.add_argument('--config',required=True);a.add_argument('--train-manifest',required=True);a.add_argument('--output',default='runs/latest');a.add_argument('--valid-manifest');a.add_argument('--resume')
  a=sub.add_parser('infer'); a.add_argument('--checkpoint',required=True);a.add_argument('--features',required=True);a.add_argument('--output',required=True);a.add_argument('--device',default=None)
  a=sub.add_parser('export');a.add_argument('--checkpoint',required=True);a.add_argument('--output',required=True)
  a=sub.add_parser('evaluate');a.add_argument('--reference',required=True);a.add_argument('--generated',required=True);a.add_argument('--sample-rate',type=int,default=48000);a.add_argument('--hop-size',type=int,default=300)
  x=p.parse_args(); logging.basicConfig(level=logging.DEBUG if x.verbose else logging.INFO,format='%(asctime)s %(levelname)s %(message)s')
  if x.command=='prepare': prepare(x.manifest,x.output,x.sample_rate,x.hop_size,x.n_mels)
- elif x.command=='train': train(yaml.safe_load(Path(x.config).read_text()),x.train_manifest,x.output)
+ elif x.command=='train': train(yaml.safe_load(Path(x.config).read_text()),x.train_manifest,x.output,x.valid_manifest,x.resume)
  elif x.command=='infer':
   dev=torch.device(x.device or ('cuda' if torch.cuda.is_available() else 'cpu')); m=load_model(x.checkpoint,dev); z=np.load(x.features); mel=torch.from_numpy(z['mel']).float()[None].to(dev); f0=torch.from_numpy(z['f0']).float()[None].to(dev); e=torch.from_numpy(z['energy']).float()[None].to(dev); t=torch.from_numpy(z.get('timing',np.zeros_like(z['f0']))).float()[None].to(dev)
   with torch.inference_mode(): y=m(mel,f0,e,t).squeeze().cpu().numpy()

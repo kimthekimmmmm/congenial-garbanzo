@@ -29,7 +29,9 @@ def extract_features(wav: Tensor, sample_rate: int, hop_size: int, n_mels: int) 
     n_fft=2048; window=torch.hann_window(n_fft,device=wav.device)
     spec=torch.stft(wav,n_fft,hop_size,n_fft,window=window,return_complex=True,center=True).abs()
     mel=torch.log(torch.clamp(mel_filter(sample_rate,n_fft,n_mels,wav.device) @ spec,min=1e-5))
-    energy=torch.sqrt(F.avg_pool1d(wav.square()[None,None], hop_size, hop_size, ceil_mode=True)[0,0]+1e-8)[:mel.shape[-1]]
+    energy = torch.sqrt(F.avg_pool1d(wav.square()[None, None], hop_size, hop_size, ceil_mode=True) + 1e-8)
+    # STFT uses centered frames; explicitly match the conditioning timeline.
+    energy = F.interpolate(energy, size=mel.shape[-1], mode="linear", align_corners=False)[0, 0]
     # Lightweight autocorrelation baseline. Replace with RMVPE/CREPE for training-quality labels.
     f0=torch.zeros(mel.shape[-1],device=wav.device); minlag=max(1,sample_rate//800); maxlag=sample_rate//50
     padded=F.pad(wav,(n_fft//2,n_fft//2));

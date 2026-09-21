@@ -4,11 +4,11 @@ A compact, production-oriented neural waveform vocoder for expressive speech and
 
 ## Design and risks
 
-**Architecture.** A frame-rate conditioning encoder fuses log-mel, continuous F0 (in Hz), voiced/unvoiced flag, energy, phoneme-boundary timing, speaker identity, style, and optional breath/noise. A voiced harmonic excitation and a learnable noise excitation are injected before transposed-convolution upsampling. Multi-receptive-field residual blocks protect both long, stable singing harmonics and short consonant/transient detail. The default 48 kHz / 300-hop configuration has an exact 300x upsampling ratio.
+**Architecture.** A frame-rate conditioning encoder fuses log-mel, continuous F0 (in Hz), voiced/unvoiced flag, energy, phoneme-boundary timing, speaker identity, style, and optional breath/noise. A voiced harmonic excitation and explicitly controlled stochastic breath/noise are injected at every upsampling scale. Multi-receptive-field residual blocks protect both long, stable singing harmonics and short consonant/transient detail. The default 48 kHz / 300-hop configuration has an exact 300x upsampling ratio.
 
 **Why this design.** Diffusion waveform generators can be excellent but are often too slow for practical local singing iteration. Adversarial GAN vocoders are fast and stable once trained; explicit source conditioning materially reduces F0 drift on long notes. The discriminators operate at several periods and scales, so pitch periodicity, transients, and broadband fricatives receive separate pressure.
 
-**Main risks / mitigations.** (1) F0 extraction errors cause buzz: use continuous F0 plus V/UV and source dropout during training. (2) adversarial collapse causes metallic fizz: use feature matching, multi-resolution STFT, waveform loss, and discriminator warm-up. (3) boundary blur: pass a timing channel and crop aligned waveform/conditioning segments. (4) singing exposes periodic artifacts: include sustained notes and vibrato in training, and measure cents error. High realism depends substantially on clean, licensed paired training data; this repository supplies the implementation, not pretrained voice weights.
+**Main risks / mitigations.** (1) F0 extraction errors cause buzz: use continuous F0 plus V/UV labels and audited F0 extraction. (2) adversarial collapse causes metallic fizz: use feature matching, multi-resolution STFT, waveform loss, and discriminator warm-up. (3) boundary blur: pass a timing channel and crop aligned waveform/conditioning segments. (4) singing exposes periodic artifacts: include sustained notes and vibrato in training, and measure cents error. High realism depends substantially on clean, licensed paired training data; this repository supplies the implementation, not pretrained voice weights.
 
 ## Quick start
 
@@ -16,12 +16,16 @@ A compact, production-oriented neural waveform vocoder for expressive speech and
 pip install -e '.[train,test]'
 aural-vocoder prepare --manifest data/manifest.jsonl --output data/prepared --sample-rate 48000 --hop-size 300
 # inspect and edit configs/default.yaml, then:
-aural-vocoder train --config configs/default.yaml --train-manifest data/prepared/manifest.jsonl --output runs/latest
-aural-vocoder infer --checkpoint runs/latest/generator-5000.pt --features example.npz --output output.wav
-aural-vocoder export --checkpoint runs/latest/generator-5000.pt --output generator.ts
+aural-vocoder train --config configs/default.yaml --train-manifest data/prepared/train.jsonl --valid-manifest data/prepared/valid.jsonl --output runs/latest
+aural-vocoder infer --checkpoint runs/latest/last.pt --features example.npz --output output.wav
+aural-vocoder export --checkpoint runs/latest/last.pt --output generator.ts
 ```
 
 The preparation manifest is JSONL with `audio`, optional `speaker`, `style`, and optional `phoneme_boundaries` (seconds). It writes `.npz` features containing `mel`, `f0`, `energy`, and `timing`. For best results, extract reliable F0 externally (RMVPE/CREPE) and replace `f0` in the prepared files; the built-in autocorrelation extractor is a dependency-free baseline.
+
+## Training operations
+
+Training supports CUDA automatic mixed precision, resumable checkpoints, a discriminator warm-up, gradient clipping, and optional held-out validation: `--valid-manifest data/prepared/valid.jsonl`. The final checkpoint is written to `runs/latest/last.pt`; use `--resume` with a checkpoint to continue an interrupted run.
 
 ## Quality validation
 

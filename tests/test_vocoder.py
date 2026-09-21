@@ -9,3 +9,14 @@ def test_generator_is_sample_aligned_and_bounded():
 def test_spectral_loss_identity_is_small():
  x=torch.randn(1,1,4096)*.1
  assert stft_loss(x,x)<1e-6
+
+
+def test_invalid_hop_ratio_is_rejected():
+ import pytest
+ with pytest.raises(ValueError, match="Product of upsample_rates"):
+  VocoderConfig(hop_size=301)
+
+def test_source_adapters_receive_gradients():
+ c=VocoderConfig(sample_rate=24000,hop_size=24,n_mels=8,channels=32,upsample_rates=(2,2,2,3),upsample_kernels=(4,4,4,6),resblock_kernels=(3,),resblock_dilations=((1,),),speaker_dim=4,style_dim=4)
+ m=VocoderGenerator(c); y=m(torch.randn(1,8,4),torch.ones(1,4)*220,torch.ones(1,4)); y.mean().backward()
+ assert all(adapter.weight_g.grad is not None for adapter in m.source_adapters)
