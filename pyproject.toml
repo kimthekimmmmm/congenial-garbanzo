@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aural-vocoder"
+version = "0.1.0"
+description = "Conditioned high-fidelity neural speech and singing vocoder"
+requires-python = ">=3.10"
+dependencies = ["torch>=2.1", "numpy>=1.24", "soundfile>=0.12", "pyyaml>=6.0"]
+
+[project.optional-dependencies]
+train = ["torchaudio>=2.1", "tensorboard>=2.14"]
+test = ["pytest>=7.4"]
+
+[project.scripts]
+aural-vocoder = "neural_vocoder.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
