@@ -1,0 +1,14 @@
+sample_rate: 48000
+hop_size: 300
+n_mels: 100
+segment_frames: 96
+batch_size: 8
+num_workers: 4
+learning_rate: 0.0002
+max_steps: 1000000
+discriminator_warmup_steps: 10000
+log_interval: 20
+valid_interval: 2000
+checkpoint_interval: 5000
+speaker_dim: 128
+style_dim: 128
